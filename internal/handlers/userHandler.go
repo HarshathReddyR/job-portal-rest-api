@@ -113,3 +113,37 @@ func (h *Handler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, tkn)
 
 }
+func (h *Handler) ForgotPassword(c *gin.Context){
+	ctx := c.Request.Context()
+	traceId, ok := ctx.Value(middleware.TraceIdKey).(string)
+	if !ok {
+		log.Error().Msg("traceId missing from context")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"msg": http.StatusText(http.StatusInternalServerError)})
+		return
+	}
+	var ru1 models.Recive1
+
+	//here we are decoding the Json body
+	err := json.NewDecoder(c.Request.Body).Decode(&ru1)
+	if err != nil {
+		log.Error().Err(err).Str("Trace Id", traceId)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"msg": http.StatusText(http.StatusInternalServerError)})
+		return
+	}
+
+	//here we are validating the every fields
+	validate := validator.New()
+	err = validate.Struct(ru1)
+	if err != nil {
+		log.Error().Err(err).Str("Trace Id", traceId).Send()
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": "please provide Email and DOB"})
+		return
+	}
+	err=h.service.ForgotPassword(ctx,ru1)
+	if err!=nil{
+		log.Error().Err(err).Msg("ForgotPassword")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"msg": http.StatusText(http.StatusInternalServerError)})
+		return
+	}
+	c.JSON(http.StatusOK,nil)
+}

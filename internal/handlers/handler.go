@@ -67,6 +67,7 @@ func API(a *auth.Auth, sc repository.UserRepo, redisLayer redies.RedisMethods) *
 	r.GET("/api/jobs/:id", m.Authenticate(h.FetchJobById))
 	r.GET("/api/companies/:id/jobs", m.Authenticate(h.FetchJobByCompanyId))
 	r.POST("/api/jobpost/", (h.ProcessingJob))
+	r.POST("/api/forgotpassword",h.ForgotPassword)
 	return r //return prepared gin engine
 
 }

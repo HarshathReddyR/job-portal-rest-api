@@ -2,9 +2,13 @@ package services
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
+	"fmt"
 	"job-portal-api/internal/models"
 	"job-portal-api/internal/pkg"
+	"math/big"
+	"net/smtp"
 	"strconv"
 	"time"
 
@@ -22,6 +26,7 @@ func (s *Service) CreateUser(ctx context.Context, userData models.NewUser) (mode
 	userDetails := models.User{
 		Name:         userData.Name,
 		Email:        userData.Email,
+		DOB:          userData.DOB,
 		PasswordHash: string(hashedPass),
 	}
 	userDetails, err = s.userRepo.CreateUser(userDetails)
@@ -50,4 +55,74 @@ func (s *Service) UserLogin(ctx context.Context, email, password string) (jwt.Re
 	}
 	return claims, nil
 
+}
+
+func (s *Service) ForgotPassword(ctx context.Context, ru1 models.Recive1) error {
+	err := s.userRepo.ForgotPassword(ru1)
+	if err != nil {
+		return errors.New("invalid email")
+	}
+	otp, err := GenerateOTP()
+	if err != nil {
+		return err
+	}
+	// Message content
+	a := ru1.Email
+
+	err = s.rdb.AddOTPToRedis(ctx, a, otp)
+	if err != nil {
+		return err
+	}
+	err = SendMail(ctx, ru1, otp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func SendMail(ctx context.Context, ru1 models.Recive1, otp string) error {
+	// Sender's email address and password
+	from := "harshathreddy18@gmail.com"
+	password := "xhod ymbp xarp nehf"
+
+	// Recipient's email address
+	to := ru1.Email
+
+	// SMTP server details
+	smtpServer := "smtp.gmail.com"
+	smtpPort := 587
+
+	// otp,err:=GenerateOTP()
+	// if err!=nil{
+	// 	return err
+	// }
+	// // Message content
+
+	// err=redies.RedisMethods.AddOTPToRedis(ctx,ru1.Email,otp)
+
+	message := []byte("One Time Password" + otp)
+
+	// Authentication information
+	auth := smtp.PlainAuth("", from, password, smtpServer)
+
+	// SMTP connection
+	smtpAddr := fmt.Sprintf("%s:%d", smtpServer, smtpPort)
+	err := smtp.SendMail(smtpAddr, auth, from, []string{to}, message)
+	if err != nil {
+		// fmt.Println("Error sending email:", err)
+		return err
+	}
+
+	fmt.Println("Email sent successfully!")
+	return nil
+}
+func GenerateOTP() (string, error) {
+	randomNumber, err := rand.Int(rand.Reader, big.NewInt(999999))
+	if err != nil {
+		return "", err
+	}
+
+	// Add leading zeros if necessary
+	otp := fmt.Sprintf("%06d", randomNumber)
+
+	return otp, nil
 }

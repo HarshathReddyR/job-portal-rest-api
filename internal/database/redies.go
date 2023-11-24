@@ -1,12 +1,24 @@
 package database
 
-import "github.com/redis/go-redis/v9"
+import (
+	"fmt"
+	"job-portal-api/config"
+	"strconv"
 
-func ConnectionToRedis() *redis.Client {
+	"github.com/redis/go-redis/v9"
+)
+
+func ConnectionToRedis(cfg config.Config) *redis.Client {
+	str := cfg.RedisDB.Db
+	num, err := strconv.Atoi(str)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return &redis.Client{}
+	}
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:     cfg.RedisDB.Addr,
+		Password:  cfg.RedisDB.Password,
+		DB:       num,                                     
 	})
 	return rdb
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"job-portal-api/config"
 	"job-portal-api/internal/auth"
 	"job-portal-api/internal/database"
 	"job-portal-api/internal/handlers"
@@ -26,22 +27,26 @@ func main() {
 }
 
 func startApp() error {
+	cfg := config.GetConfig()
+	log.Info().Msg("config working")
 	log.Info().Msg("main : Started : Initializing authentication support")
 	//message to the developer
-	privatePEM, err := os.ReadFile("private.pem")
-	//reading the file and returning the byte format
-	if err != nil {
-		return fmt.Errorf("reading auth private key %w", err)
-	}
+	// privatePEM, err := os.ReadFile("private.pem")
+	// //reading the file and returning the byte format
+	// if err != nil {
+	// 	return fmt.Errorf("reading auth private key %w", err)
+	// }
+	privatePEM := []byte(cfg.Keys.Private)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privatePEM) //converting the byte format and saving the address of privatekey
 	if err != nil {
 		return fmt.Errorf("parsing auth private key %w", err)
 	}
 
-	publicPEM, err := os.ReadFile("pubkey.pem") //reading the file and returning the byte format
-	if err != nil {
-		return fmt.Errorf("reading auth public key %w", err)
-	}
+	// publicPEM, err := os.ReadFile("pubkey.pem") //reading the file and returning the byte format
+	// if err != nil {
+	// 	return fmt.Errorf("reading auth public key %w", err)
+	// }
+	publicPEM := []byte(cfg.Keys.Public)
 
 	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicPEM)
 	if err != nil {
@@ -54,7 +59,8 @@ func startApp() error {
 	}
 	//connection of DB
 	log.Info().Msg("main : Started : Initializing db support")
-	db, err := database.Open()
+
+	db, err := database.Open(cfg)
 	if err != nil {
 		return fmt.Errorf("connecting to db %w", err)
 	}
@@ -78,11 +84,11 @@ func startApp() error {
 	// if err != nil {
 	// 	return err
 	// }
-	rdb := database.ConnectionToRedis()
+	rdb := database.ConnectionToRedis(cfg)
 
 	redisLayer := redies.NewRedis(rdb)
 	api := http.Server{
-		Addr:         ":8082",
+		Addr:         fmt.Sprintf("%s:%s", cfg.AppConfig.Host, cfg.AppConfig.Port),
 		ReadTimeout:  8000 * time.Second,
 		WriteTimeout: 800 * time.Second,
 		IdleTimeout:  800 * time.Second,

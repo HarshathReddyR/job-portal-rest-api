@@ -1,15 +1,16 @@
 package database
 
 import (
+	"job-portal-api/config"
 	"job-portal-api/internal/models"
-	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func Open() (*gorm.DB, error) {
-	dsn := os.Getenv("DB_DSN")
+func Open(cfg config.Config) (*gorm.DB, error) {
+	dsn := cfg.DatabaseCOnfig.DB_DSN
+	// dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmod=%s timezone=%s", cfg.DatabaseCOnfig.Host, cfg.DatabaseCOnfig.User,cfg.DatabaseCOnfig.Dbname, cfg.DatabaseCOnfig.Password, cfg.DatabaseCOnfig.Port, cfg.DatabaseCOnfig.Sslmode, cfg.DatabaseCOnfig.Timezone)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err

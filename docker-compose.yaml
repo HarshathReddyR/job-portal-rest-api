@@ -7,9 +7,12 @@ services:
     ports:
       - "8080:8080"
     build: .
-    # env_file:
-    #   - .env
+    env_file:
+      - .env
     #   - .auth.env
+      - .keys.env
+      - .db.env
+      - .redis.env
     depends_on:
       - postgres
     restart: always
@@ -19,15 +22,15 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - db.env
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=hrr
+      - .dbapp.env
+    # environment:
+    #   - POSTGRES_USER=postgres
+    #   - POSTGRES_PASSWORD=admin
+    #   - POSTGRES_DB=hrr
   redis:
     container_name: redis
     image: redis
     ports:
       - "6379:6379"
-    env_file:
-      - 
+    # env_file:
+    #   - .redis.env

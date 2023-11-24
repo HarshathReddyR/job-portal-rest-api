@@ -29,3 +29,12 @@ func (r *Repo) UserLogin(email string) (models.User, error) {
 	}
 	return user, nil
 }
+func (r *Repo) ForgotPassword(ru1 models.Recive1) error {
+	var user models.User
+	result := r.db.Where("email = ? dob=?", ru1.Email, ru1.DOB).First(&user).Error
+	if result != nil {
+		log.Info().Err(result).Send()
+		return errors.New("email not found")
+	}
+	return nil
+}
