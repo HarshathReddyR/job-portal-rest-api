@@ -3,11 +3,13 @@ package redies
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"job-portal-api/internal/models"
 	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 )
 
 type Redis struct {
@@ -18,7 +20,9 @@ type Redis struct {
 type RedisMethods interface {
 	AddToRedis(ctx context.Context, jid uint, jobData models.Job) error
 	GetDataFromRedis(ctx context.Context, jid uint) (string, error)
+
 	AddOTPToRedis(ctx context.Context, email string, otp string) error
+	CompareOTP(ctx context.Context, ru2 models.Recive2) error
 }
 
 func NewRedis(redis *redis.Client) RedisMethods {
@@ -38,9 +42,27 @@ func (r *Redis) AddToRedis(ctx context.Context, jid uint, jobData models.Job) er
 func (r *Redis) GetDataFromRedis(ctx context.Context, jid uint) (string, error) {
 	jobID := strconv.FormatUint(uint64(jid), 10)
 	str, err := r.redisdb.Get(ctx, jobID).Result()
-	return str, err
+	if err!=nil{
+		log.Info().Err(err).Send()
+		return " ",err
+	}
+	return str,nil
 }
 func (r *Redis) AddOTPToRedis(ctx context.Context, email string, otp string) error {
 	err := r.redisdb.Set(ctx, email, otp, 5*time.Minute).Err()
+	if err != nil {
+		log.Error().Msg("error in adding otp to the redis")
+		return err
+	}
 	return err
+}
+func (r *Redis) CompareOTP(ctx context.Context, ru2 models.Recive2) error {
+	otp, err := r.redisdb.Get(ctx, ru2.Email).Result()
+	if err != nil {
+		return err
+	}
+	if otp == ru2.OTP {
+		return nil
+	}
+	return errors.New("otp does not match")
 }

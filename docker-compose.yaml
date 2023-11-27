@@ -6,7 +6,9 @@ services:
     image: "job-portal"
     ports:
       - "8080:8080"
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     env_file:
       - .env
     #   - .auth.env
@@ -32,5 +34,5 @@ services:
     image: redis
     ports:
       - "6379:6379"
-    # env_file:
-    #   - .redis.env
+    env_file:
+      - .redis.env

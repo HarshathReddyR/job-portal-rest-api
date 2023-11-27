@@ -3,9 +3,9 @@ package models
 import "gorm.io/gorm"
 
 type NewUser struct {
-	Name     string `json:"username" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	DOB      string `json:"dob" validate:"required"`
+	Name  string `json:"username" validate:"required"`
+	Email string `json:"email" validate:"required,email"`
+	// DOB      string `json:"dob" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -29,7 +29,8 @@ type Recive1 struct {
 // 	PasswordHash string `json:"-"`
 // }
 type Recive2 struct {
-	OTP             string `json:"otp"`
-	NewPassword     string `json:"newpassword"`
-	ConformPassword string `json:"Conformpassword"`
+	Email           string `json:"email" validate:"required"`
+	OTP             string `json:"otp" validate:"required"`
+	NewPassword     string `json:"newpassword" validate:"required"`
+	ConformPassword string `json:"Conformpassword" validate:"required"`
 }

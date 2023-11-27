@@ -28,8 +28,9 @@ type UserRepo interface {
 	ViewAllJobs() ([]models.Job, error)
 	ViewJobDetailsById(jid uint64) (models.Job, error)
 
-	ForgotPassword(ru1 models.Recive1 ) (error)
-
+	ForgotPassword(ru1 models.Recive1) error
+	CopmarePassword(ru2 models.Recive2) error
+	UpdateNewPassword(ru2 models.Recive2)error
 	// ProcessingJob()
 }
 

@@ -32,6 +32,7 @@ type ServiceMethod interface {
 	ProcessingJob(ctx context.Context, rjob []models.RequestJob) ([]models.NewRequestJob, error)
 	
 	ForgotPassword(ctx context.Context,ru1 models.Recive1) error
+	UpdatePassword(ctx context.Context,ru2 models.Recive2) error
 }
 
 func NewService(userRepo repository.UserRepo,rdb redies.RedisMethods ) (ServiceMethod, error) {

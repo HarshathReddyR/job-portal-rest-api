@@ -24,9 +24,9 @@ func (s *Service) CreateUser(ctx context.Context, userData models.NewUser) (mode
 	}
 	//prepare user record
 	userDetails := models.User{
-		Name:         userData.Name,
-		Email:        userData.Email,
-		DOB:          userData.DOB,
+		Name:  userData.Name,
+		Email: userData.Email,
+		// DOB:          userData.DOB,
 		PasswordHash: string(hashedPass),
 	}
 	userDetails, err = s.userRepo.CreateUser(userDetails)
@@ -68,7 +68,7 @@ func (s *Service) ForgotPassword(ctx context.Context, ru1 models.Recive1) error 
 	}
 	// Message content
 	a := ru1.Email
-
+    
 	err = s.rdb.AddOTPToRedis(ctx, a, otp)
 	if err != nil {
 		return err
@@ -99,7 +99,7 @@ func SendMail(ctx context.Context, ru1 models.Recive1, otp string) error {
 
 	// err=redies.RedisMethods.AddOTPToRedis(ctx,ru1.Email,otp)
 
-	message := []byte("One Time Password" + otp)
+	message := []byte("One Time Password  " + otp)
 
 	// Authentication information
 	auth := smtp.PlainAuth("", from, password, smtpServer)
@@ -125,4 +125,19 @@ func GenerateOTP() (string, error) {
 	otp := fmt.Sprintf("%06d", randomNumber)
 
 	return otp, nil
+}
+func(s *Service)UpdatePassword(ctx context.Context,ru2 models.Recive2) error{
+	err:=s.rdb.CompareOTP(ctx,ru2)
+	if err!=nil{
+		return err
+	}
+	err=s.userRepo.CopmarePassword(ru2)
+	if err!=nil{
+		return err
+	}
+	err=s.userRepo.UpdateNewPassword(ru2)
+	if err!=nil{
+		return err
+	}
+	return nil
 }

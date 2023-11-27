@@ -2,6 +2,7 @@ package repository
 
 import (
 	"job-portal-api/internal/models"
+	"job-portal-api/internal/pkg"
 
 	"errors"
 
@@ -31,10 +32,34 @@ func (r *Repo) UserLogin(email string) (models.User, error) {
 }
 func (r *Repo) ForgotPassword(ru1 models.Recive1) error {
 	var user models.User
-	result := r.db.Where("email = ? dob=?", ru1.Email, ru1.DOB).First(&user).Error
+	result := r.db.Where("email = ? ", ru1.Email).First(&user).Error
 	if result != nil {
 		log.Info().Err(result).Send()
 		return errors.New("email not found")
+	}
+	return nil
+}
+func (r *Repo) CopmarePassword(ru2 models.Recive2) error {
+	var user models.User
+	conformhassedpassword, err := pkg.HashPassword(ru2.ConformPassword)
+	if err != nil {
+		return err
+	}
+	r.db.Where("email = ? ", ru2.Email).First(&user)
+	if user.Email != conformhassedpassword {
+		return nil
+	}
+	return errors.New("password does not match")
+}
+func (r *Repo) UpdateNewPassword(ru2 models.Recive2) error {
+	//var user models.User
+	conformhassedpassword, err := pkg.HashPassword(ru2.ConformPassword)
+	if err != nil {
+		return err
+	}
+	err = r.db.Model(&models.User{}).Where("email = ? ", ru2.Email).Update("PasswordHash", conformhassedpassword).Error
+	if err != nil {
+		return err
 	}
 	return nil
 }
